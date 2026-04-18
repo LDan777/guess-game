@@ -19,9 +19,18 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 80%; max-width: 320px;
         }
         .btn-main { 
-            width: 100%; padding: 15px; margin: 10px 0; border: none; 
-            border-radius: 50px; background: var(--primary); color: white; 
-            font-weight: bold; font-size: 16px; cursor: pointer; display: block;
+            width: 100%;padding: 15px;margin: 10px 0;
+            border: none;border-radius: 50px;background: var(--primary);
+            color: white;font-weight: bold;font-size: 16px;
+            cursor: pointer;display: block;transition: all 0.2s ease;
+        }
+        .btn-main:hover {
+            background: #ff9f2a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255,138,0,0.3);
+        }
+        .btn-main:active {
+            transform: scale(0.97);
         }
 
         /* 游戏主体布局 */
