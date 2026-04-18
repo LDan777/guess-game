@@ -2,77 +2,213 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TF家族猜猜看 - 官方联机版</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --primary: #ff8a00; --bg: #f8f9fa; }
-        body { font-family: 'PingFang SC', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        
-        /* 首页大方框 */
-        #home-screen { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; z-index: 100;
+        :root {
+            --primary: #ff8a00;
+            --primary-gradient: linear-gradient(135deg, #ff8a00 0%, #ff5e3a 100%);
+            --bg: #f0f2f5;
+            --glass: rgba(255, 255, 255, 0.9);
         }
-        .menu-box { 
-            background: white; padding: 40px; border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 300px;
-        }
-        .menu-box h2 { margin-bottom: 25px; color: #333; }
-        .menu-box button { width: 100%; margin-bottom: 15px; transition: 0.3s; }
 
-        /* 游戏主体 */
-        #game-interface { display: none; width: 100%; max-width: 1200px; flex-direction: column; align-items: center; }
-        .controls { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; width: 90%; text-align: center; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; width: 100%; }
-        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 6px rgba(0,0,0,0.1); cursor: pointer; transition: 0.2s; }
-        .card img { width: 100%; height: 220px; object-fit: cover; object-position: top; }
-        .card.excluded { opacity: 0.15; filter: grayscale(100%); }
-        
-        button { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        button:hover { opacity: 0.9; transform: scale(1.05); }
-        .hidden { display: none; }
-        .room-info { color: #ff8a00; font-weight: bold; font-size: 1.2em; margin: 10px 0; }
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(#ff8a0022 1px, transparent 1px);
+            background-size: 20px 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* 首页美化 */
+        #home-screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-box {
+            background: var(--glass);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 85%;
+            max-width: 360px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .menu-box h2 {
+            margin-top: 0;
+            font-size: 24px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary { background: var(--primary-gradient); color: white; box-shadow: 0 4px 15px rgba(255,138,0,0.3); }
+        .btn-primary:active { transform: scale(0.95); }
+
+        /* 游戏界面 */
+        #game-interface { display: none; width: 100%; max-width: 1200px; padding: 20px; box-sizing: border-box; }
+
+        .header-card {
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            text-align: center;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+
+        .room-badge {
+            display: inline-block;
+            background: #fff3e0;
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        /* 明星卡片 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            object-position: top; /* 确保顶格显示 */
+        }
+
+        .card.excluded {
+            opacity: 0.2;
+            filter: grayscale(100%);
+            transform: scale(0.92);
+        }
+
+        .card-info { padding: 10px; text-align: center; }
+        .card-info b { font-size: 15px; display: block; margin-bottom: 4px; }
+        .card-info span { font-size: 11px; color: #999; background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
+
+        /* 模式切换器 */
+        .mode-switch {
+            display: flex;
+            background: #eee;
+            border-radius: 10px;
+            padding: 4px;
+            margin: 15px 0;
+        }
+        .mode-switch label {
+            flex: 1;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 7px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .mode-switch input { display: none; }
+        .mode-switch input:checked + span {
+            background: white;
+            display: block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 7px;
+            font-weight: bold;
+        }
+
+        .target-alert {
+            background: #fff9f0;
+            border-left: 4px solid var(--primary);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
     <div id="home-screen">
         <div class="menu-box">
-            <h2>✨ 游戏模式 ✨</h2>
-            <button onclick="enterMode('single')">🙋‍♂️ 单机练习</button>
-            <button onclick="enterMode('create')">🏠 创建房间 (联机)</button>
-            <button onclick="enterMode('join')">🔑 加入房间 (联机)</button>
+            <h2>✨ 时代峰峻猜猜看 ✨</h2>
+            <button class="btn btn-primary" onclick="enterMode('single')">🙋‍♂️ 单机练习模式</button>
+            <button class="btn btn-primary" onclick="enterMode('create')">🏠 创建房间 (联机)</button>
+            <button class="btn btn-primary" onclick="enterMode('join')">🔑 加入房间 (联机)</button>
+            <p style="font-size: 11px; color: #999; margin-top: 15px;">大数据学院特供版 v2.0</p>
         </div>
     </div>
 
     <div id="game-interface">
-        <h1 id="game-title">TF家族猜猜看</h1>
-        
-        <div id="online-panel" class="controls hidden">
-            <div id="room-display" class="room-info"></div>
-            <div id="conn-status" style="font-size: 12px; color: #666;">等待连接...</div>
-        </div>
-
-        <div class="controls">
-            <button onclick="pickMyTarget()">🎲 抽取我的角色</button>
-            <div id="targetDisplay" style="margin-top:10px; padding:10px; background:#fff3e0; border:1px dashed #ff8a00;" class="hidden">
-                我的角色是：<strong id="targetName" style="color:red;">?</strong>
-            </div>
+        <div class="header-card">
+            <div id="room-tag" class="hidden"><span class="room-badge" id="room-num-display"></span></div>
+            <div id="conn-status" style="font-size: 12px; color: #999; margin-bottom: 10px;">单机练习模式</div>
             
-            <div style="margin-top: 15px;">
-                <label><input type="radio" name="mode" value="exclude" checked onclick="currentMode='exclude'"> 🟢 排除</label>
-                <label style="margin-left:15px;"><input type="radio" name="mode" value="submit" onclick="currentMode='submit'"> 🔴 提交(猜对方)</label>
+            <button class="btn btn-primary" style="margin: 0 auto;" onclick="pickMyTarget()">🎲 抽取我的角色</button>
+            
+            <div id="targetDisplay" class="target-alert hidden">
+                🤫 你的目标是：<b id="targetName" style="color: var(--primary); font-size: 18px;">?</b>
             </div>
-            <button onclick="location.reload()" style="background:#666; margin-top:10px; padding:5px 15px; font-size:12px;">返回主菜单</button>
+
+            <div class="mode-switch">
+                <label><input type="radio" name="mode" value="exclude" checked onclick="currentMode='exclude'"><span>🟢 排除模式</span></label>
+                <label><input type="radio" name="mode" value="submit" onclick="currentMode='submit'"><span>🔴 提交模式</span></label>
+            </div>
+            <a href="javascript:location.reload()" style="font-size: 12px; color: #999; text-decoration: none;">← 返回首页</a>
         </div>
 
         <div class="grid" id="starGrid"></div>
     </div>
 
     <script>
+        // 这里的名单建议保留你最完整的版本
         const stars = [
-            { name: "马嘉祺", group: "TNT", img: "images/马嘉祺.png" },
+             { name: "马嘉祺", group: "TNT", img: "images/马嘉祺.png" },
             { name: "丁程鑫", group: "TNT", img: "images/丁程鑫.png" },
             { name: "宋亚轩", group: "TNT", img: "images/宋亚轩.png" },
             { name: "刘耀文", group: "TNT", img: "images/刘耀文.png" },
@@ -99,6 +235,7 @@
             { name: "李煜东", group: "四代", img: "images/李煜东.png" },
             { name: "陈浚铭", group: "四代", img: "images/陈浚铭.png" },
             { name: "王烁然", group: "四代", img: "images/王烁然.png" }
+
         ];
 
         let peer = null;
@@ -107,54 +244,60 @@
         let currentMode = 'exclude';
         let isOnline = false;
 
-        // 切换模式
         function enterMode(mode) {
             document.getElementById('home-screen').style.display = 'none';
-            document.getElementById('game-interface').style.display = 'flex';
+            document.getElementById('game-interface').style.display = 'block';
             
             if (mode === 'single') {
                 isOnline = false;
-                document.getElementById('game-title').innerText = "TF猜猜看 - 单机模式";
             } else if (mode === 'create') {
                 isOnline = true;
-                const roomNum = Math.floor(1000 + Math.random() * 9000); // 生成4位数字
-                initPeer(`TF-ROOM-${roomNum}`);
-                document.getElementById('online-panel').classList.remove('hidden');
-                document.getElementById('room-display').innerText = "房间号：" + roomNum;
+                const num = Math.floor(1000 + Math.random() * 9000);
+                document.getElementById('room-tag').classList.remove('hidden');
+                document.getElementById('room-num-display').innerText = "房间号：" + num;
+                initPeer(`TF-ROOM-${num}`);
             } else if (mode === 'join') {
                 isOnline = true;
-                const roomNum = prompt("请输入4位房间号：");
-                if(!roomNum) return location.reload();
-                initPeer(); // 加入者随机生成临时ID
+                const num = prompt("请输入4位房间号：");
+                if(!num) return location.reload();
+                document.getElementById('room-tag').classList.remove('hidden');
+                document.getElementById('room-num-display').innerText = "加入房间：" + num;
+                initPeer();
                 setTimeout(() => {
-                    conn = peer.connect(`TF-ROOM-${roomNum}`);
+                    conn = peer.connect(`TF-ROOM-${num}`);
                     setupConn();
-                }, 1000);
-                document.getElementById('online-panel').classList.remove('hidden');
-                document.getElementById('room-display').innerText = "正在加入房间：" + roomNum;
+                }, 800);
             }
         }
 
         function initPeer(id = null) {
             peer = id ? new Peer(id) : new Peer();
+            peer.on('open', () => {
+                document.getElementById('conn-status').innerText = isOnline ? "等待对方连接..." : "单机模式";
+            });
             peer.on('connection', c => {
                 conn = c;
                 setupConn();
+            });
+            peer.on('error', err => {
+                alert("连接出现点小问题，请刷新重试。");
+                location.reload();
             });
         }
 
         function setupConn() {
             conn.on('open', () => {
-                document.getElementById('conn-status').innerText = "✅ 联机成功！请开始抽卡对战。";
+                document.getElementById('conn-status').innerText = "✅ 联机成功";
+                document.getElementById('conn-status').style.color = "#4CAF50";
             });
             conn.on('data', data => {
                 if(data.type === 'CHECK') {
                     const isWin = (data.guess === myTarget);
-                    conn.send({ type: 'RESULT', isWin: isWin, realTarget: myTarget });
+                    conn.send({ type: 'RESULT', isWin, realTarget: myTarget });
                     alert(isWin ? "对方猜对了！你输了 😭" : "对方猜错了！你赢了 🏆");
                 }
                 if(data.type === 'RESULT') {
-                    alert(data.isWin ? "🎉 恭喜！你猜对了，你赢了！" : `❌ 猜错了，对方其实是【${data.realTarget}】`);
+                    alert(data.isWin ? "🎉 恭喜！你猜对了！" : `❌ 猜错了，对方其实是【${data.realTarget}】`);
                 }
             });
         }
@@ -163,13 +306,12 @@
             if (currentMode === 'exclude') {
                 el.classList.toggle('excluded');
             } else {
-                if (isOnline && !conn) return alert("对方还没连进来呢！");
+                if (isOnline && (!conn || !conn.open)) return alert("请先等待对方连接！");
                 if (confirm(`确定最终答案是【${name}】吗？`)) {
                     if (isOnline) {
                         conn.send({ type: 'CHECK', guess: name });
                     } else {
-                        // 单机模式提示
-                        alert("单机模式提交仅用于练习，没有对手判定哦。");
+                        alert("单机模式下，这只是个模拟练习~");
                     }
                 }
             }
@@ -183,13 +325,17 @@
             document.querySelectorAll('.card').forEach(c => c.classList.remove('excluded'));
         }
 
-        // 初始化网格
+        // 初始化
         const grid = document.getElementById('starGrid');
         stars.forEach(s => {
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `<img src="${s.img}" onerror="this.src='https://via.placeholder.com/160x220?text=${s.name}'">
-                             <div style="padding:10px"><b>${s.name}</b><br><small style="color:#999">${s.group}</small></div>`;
+            card.innerHTML = `
+                <img src="${s.img}" onerror="this.src='https://via.placeholder.com/150x200?text=无图'">
+                <div class="card-info">
+                    <b>${s.name}</b>
+                    <span>${s.group}</span>
+                </div>`;
             card.onclick = () => handleCardClick(s.name, card);
             grid.appendChild(card);
         });
