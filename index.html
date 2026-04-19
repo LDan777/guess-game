@@ -7,112 +7,132 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --primary: #ff8a00;
-            --primary-light: #fff3e0;
-            --text-main: #333;
-            --text-sub: #888;
-            --bg: #f6f7fb;
+            /* 莫兰蒂色系设定 */
+            --primary: #8e9775; /* 莫兰蒂绿 */
+            --primary-dark: #6d775c;
+            --primary-light: #fafaf6;
+            --accent: #a7bbc7; /* 雾霾蓝 */
+            --text-main: #555;
+            --text-sub: #999;
+            --bg: #f2f2f2;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-         body {
-            font-family: 'PingFang SC', sans-serif;
-            background: linear-gradient(180deg, #f6f7fb, #eef1f7);
+        body {
+            font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
+            background: var(--bg);
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             color: var(--text-main);
         }
-                
-        /* 还原你喜欢的橙色圆角首页 */
+        
         #home-screen { 
-            position: fixed; inset: 0; background: #eee; 
+            position: fixed; inset: 0; background: #e5e5e5; 
             display: flex; justify-content: center; align-items: center; z-index: 9999; 
         }
         .menu-box {
             background: white;
             padding: 45px 30px;
-            border-radius: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
             text-align: center;
             width: 80%;
             max-width: 320px;
-            animation: fadeIn 0.4s ease;
         }
         
-        .menu-box h2 {
-            margin-bottom: 25px;
-            font-weight: 600;
-        }
         .btn-main { 
             width: 100%;
             padding: 15px;
             margin: 10px 0;
             border: none;
-            border-radius: 50px;
+            border-radius: 12px;
             background: var(--primary);
             color: white;
-            font-weight: bold;
+            font-weight: 500;
             font-size: 16px;
             cursor: pointer;
-            display: block;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
-        .btn-main:active {
-            transform: scale(0.97);
-        }
-        .btn-main:active {
-            transform: scale(0.97);
-        }
+        .btn-main:active { transform: scale(0.98); opacity: 0.9; }
         
-        /* 游戏主体布局 */
-        #game-interface { display: none; width: 100%; max-width: 1000px; padding: 15px; box-sizing: border-box; }
+        #game-interface { display: none; width: 100%; max-width: 1000px; padding: 15px; box-sizing: border-box; flex-direction: column; }
         .controls {
             background: white;
             padding: 20px;
             border-radius: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            box-shadow: var(--card-shadow);
             margin-bottom: 20px;
             text-align: center;
         }
-        
-        /* 明星卡片：解决顶格问题 */
+
+        /* 抽取结果展示区优化 */
+        #targetDisplay {
+            background: var(--primary-light);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        #targetName.masked {
+            filter: blur(5px);
+            background: #eee;
+            color: transparent !important;
+            user-select: none;
+        }
+        .toggle-btn {
+            background: none;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; width: 100%; }
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: pointer; transition: 0.2s; position: relative; }
-        .card img { width: 100%; height: 200px; object-fit: cover; object-position: top; pointer-events: none; }
-        .card.excluded { opacity: 0.15; filter: grayscale(100%); }
-        .card-name { padding: 8px; font-size: 14px; font-weight: bold; text-align: center; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--card-shadow); cursor: pointer; transition: 0.3s; position: relative; }
+        .card img { width: 100%; height: 200px; object-fit: cover; object-position: top; }
+        .card.excluded { opacity: 0.2; filter: grayscale(100%) sepia(20%); }
+        .card-name { padding: 10px; font-size: 14px; color: var(--text-main); text-align: center; }
 
         .hidden { display: none !important; }
-        .status-tag { font-size: 12px; color: var(--primary); margin-bottom: 10px; }
+        .status-tag { font-size: 12px; color: var(--primary); margin-bottom: 10px; font-weight: bold;}
     </style>
 </head>
 <body>
 
     <div id="home-screen">
         <div class="menu-box">
-            <h2 style="margin-bottom:20px;">✨ 游戏模式 ✨</h2>
-            <button class="btn-main" onclick="enterMode('single')">🙋‍♂️ 单机练习</button>
-            <button class="btn-main" onclick="enterMode('create')">🏠 创建房间 (联机)</button>
-            <button class="btn-main" onclick="enterMode('join')">🔑 加入房间 (联机)</button>
+            <h2 style="margin-bottom:25px; color:#777;">✨ 游戏模式 ✨</h2>
+            <button class="btn-main" onclick="enterMode('single')">单机练习</button>
+            <button class="btn-main" style="background: var(--accent);" onclick="enterMode('create')">创建房间</button>
+            <button class="btn-main" style="background: #b8b0a6;" onclick="enterMode('join')">加入房间</button>
         </div>
     </div>
 
     <div id="game-interface">
         <div class="controls">
             <div id="room-info" class="status-tag hidden"></div>
-            <div id="conn-status" style="font-size: 12px; color: #888;"></div>
+            <div id="conn-status" style="font-size: 12px; color: #aaa; margin-bottom:10px;"></div>
             
-            <button class="btn-main" style="margin: 10px auto; width: auto;" onclick="pickMyTarget()">🎲 抽取我的角色</button>
+            <button class="btn-main" style="margin: 5px auto; width: auto; padding: 10px 25px;" onclick="pickMyTarget()">🎲 抽取我的角色</button>
             
-            <div id="targetDisplay" class="hidden" style="background:#fff3e0; padding:10px; border-radius:10px; border:1px dashed #ff8a00; margin:10px 0;">
-                你的目标是：<strong id="targetName" style="color:red; font-size:18px;">?</strong>
+            <div id="targetDisplay" class="hidden">
+                <span>你的角色：</span>
+                <strong id="targetName" style="color:var(--primary); font-size:18px;">?</strong>
+                <button class="toggle-btn" id="toggleTarget" onclick="toggleTargetVisibility()">👁️ 隐藏</button>
             </div>
 
-            <div style="margin: 15px 0;">
-                <label><input type="radio" name="mode" value="exclude" checked onclick="currentMode='exclude'"> 🟢 排除</label>
-                <label style="margin-left:20px;"><input type="radio" name="mode" value="submit" onclick="currentMode='submit'"> 🔴 提交</label>
+            <div style="margin: 15px 0; color: #666; font-size: 14px;">
+                <label><input type="radio" name="mode" value="exclude" checked onclick="currentMode='exclude'"> 🟢 排除模式</label>
+                <label style="margin-left:20px;"><input type="radio" name="mode" value="submit" onclick="currentMode='submit'"> 🔴 提交答案</label>
             </div>
-            <small onclick="location.reload()" style="color:#999; cursor:pointer;">重选模式</small>
+            <small onclick="location.reload()" style="color:#bbb; cursor:pointer;">返回首页</small>
         </div>
 
         <div class="grid" id="starGrid"></div>
@@ -155,9 +175,8 @@
             { name: "王烁然", group: "四代", img: "images/王烁然.jpg" }
         ];
 
-        let peer = null, conn = null, myTarget = "", currentMode = 'exclude', isOnline = false;
+        let peer = null, conn = null, myTarget = "", currentMode = 'exclude', isOnline = false, isTargetVisible = true;
 
-        // 初始化网格（放在最前面，确保单机版一定能点）
         const grid = document.getElementById('starGrid');
         stars.forEach(s => {
             const card = document.createElement('div');
@@ -165,7 +184,7 @@
             card.innerHTML = `<img src="${s.img}" onerror="this.src='https://via.placeholder.com/140x200?text=${s.name}'">
                              <div class="card-name">${s.name}</div>`;
             card.onclick = (e) => {
-                e.stopPropagation(); // 防止点击穿透
+                e.stopPropagation();
                 handleCardClick(s.name, card);
             };
             grid.appendChild(card);
@@ -174,10 +193,9 @@
         function enterMode(mode) {
             document.getElementById('home-screen').classList.add('hidden');
             document.getElementById('game-interface').style.display = 'flex';
-            
             if (mode === 'single') {
                 isOnline = false;
-                document.getElementById('conn-status').innerText = "模式：单机练习";
+                document.getElementById('conn-status').innerText = "当前模式：个人练习";
             } else {
                 isOnline = true;
                 if (mode === 'create') {
@@ -189,7 +207,7 @@
                     const roomNum = prompt("请输入房间号：");
                     if(!roomNum) return location.reload();
                     initPeer();
-                    document.getElementById('conn-status').innerText = "正在连接房间 " + roomNum + "...";
+                    document.getElementById('conn-status').innerText = "正在寻找房间 " + roomNum + "...";
                     setTimeout(() => {
                         conn = peer.connect(`TF-ROOM-${roomNum}`);
                         setupConn();
@@ -202,14 +220,14 @@
             try {
                 peer = id ? new Peer(id) : new Peer();
                 peer.on('connection', c => { conn = c; setupConn(); });
-                peer.on('error', () => alert("网络初始化失败，请检查网络或刷新"));
+                peer.on('error', () => alert("连接出错，请刷新页面重试"));
             } catch(e) { console.error("PeerJS 加载失败"); }
         }
 
         function setupConn() {
             conn.on('open', () => {
-                document.getElementById('conn-status').innerText = "✅ 联机成功！";
-                document.getElementById('conn-status').style.color = "green";
+                document.getElementById('conn-status').innerText = "✅ 联机成功，游戏开始！";
+                document.getElementById('conn-status').style.color = "#8e9775";
             });
             conn.on('data', data => {
                 if(data.type === 'CHECK') {
@@ -218,7 +236,7 @@
                     alert(win ? "对方猜对了！你输了" : "对方猜错了！你赢了");
                 }
                 if(data.type === 'RES') {
-                    alert(data.win ? "🎉 你猜对了！赢了！" : `❌ 猜错了，对方是【${data.target}】`);
+                    alert(data.win ? "🎉 恭喜！你猜对了，赢了！" : `❌ 遗憾，对方的角色是【${data.target}】`);
                 }
             });
         }
@@ -227,10 +245,10 @@
             if (currentMode === 'exclude') {
                 el.classList.toggle('excluded');
             } else {
-                if (isOnline && (!conn || !conn.open)) return alert("等待对方连入...");
-                if (confirm(`确定最终答案是【${name}】吗？`)) {
+                if (isOnline && (!conn || !conn.open)) return alert("请先等待对方进入房间");
+                if (confirm(`确定要提交【${name}】作为答案吗？`)) {
                     if (isOnline) conn.send({ type: 'CHECK', guess: name });
-                    else alert("单机模式下，这只是练习哦！");
+                    else alert("单机模式：正确答案确实是练习的好帮手！");
                 }
             }
         }
@@ -238,9 +256,26 @@
         function pickMyTarget() {
             const idx = Math.floor(Math.random() * stars.length);
             myTarget = stars[idx].name;
-            document.getElementById('targetName').innerText = myTarget;
+            const nameEl = document.getElementById('targetName');
+            nameEl.innerText = myTarget;
+            nameEl.classList.remove('masked');
             document.getElementById('targetDisplay').classList.remove('hidden');
+            document.getElementById('toggleTarget').innerText = "👁️ 隐藏";
+            isTargetVisible = true;
             document.querySelectorAll('.card').forEach(c => c.classList.remove('excluded'));
+        }
+
+        function toggleTargetVisibility() {
+            const nameEl = document.getElementById('targetName');
+            const btn = document.getElementById('toggleTarget');
+            isTargetVisible = !isTargetVisible;
+            if (isTargetVisible) {
+                nameEl.classList.remove('masked');
+                btn.innerText = "👁️ 隐藏";
+            } else {
+                nameEl.classList.add('masked');
+                btn.innerText = "👁️ 显示";
+            }
         }
     </script>
 </body>
