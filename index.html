@@ -199,7 +199,7 @@
             } else {
                 isOnline = true;
                 if (mode === 'create') {
-                    const roomNum = Math.floor(1000 + Math.random() * 9000);
+                    const roomNum = Math.random().toString(36).substr(2, 6).toUpperCase();
                     document.getElementById('room-info').innerText = "房间号：" + roomNum;
                     document.getElementById('room-info').classList.remove('hidden');
                     initPeer(`TF-ROOM-${roomNum}`);
@@ -218,7 +218,7 @@
 
         function initPeer(id = null) {
             try {
-                peer = id ? new Peer(id) : new Peer();
+                peer = id ? new Peer(id, { debug: 2 }) : new Peer({ debug: 2 });
                 peer.on('connection', c => { conn = c; setupConn(); });
                 peer.on('error', () => alert("连接出错，请刷新页面重试"));
             } catch(e) { console.error("PeerJS 加载失败"); }
